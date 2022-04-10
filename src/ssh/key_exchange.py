@@ -129,6 +129,7 @@ class StartKeyExchangeDH(Message):
         e = int(binary_value, 2)
         return cls(e=e)
 
+
 @dataclass
 class KeyExchangeDHReply(Message):
     """ Used to start DH kex """
@@ -172,7 +173,6 @@ class DiffieHellmanKeyExchange:
         return (received_partial_shared_key ** self.x) % self.p
 
     def calculate_hash(self, v_c: str, v_s: str, i_c: str, i_s: str, k_s: str, e: str, f: str, k: str) -> str:
-        # Todo: Replace with proper sha-1 hash
         to_hash = v_c + v_s + i_c + i_s + k_s + e + f + k
         return hashlib.sha1(to_hash).hexdigest()
 
