@@ -132,7 +132,7 @@ class StartKeyExchangeDH(Message):
 
 @dataclass
 class KeyExchangeDHReply(Message):
-    """ Used to start DH kex """
+    """ Server reply to DH kex request """
     server_host_key_certificates: str
     f: int
     signature_h: str
