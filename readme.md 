@@ -1,0 +1,2 @@
+# Ssh client / server
+A from scratch implementation in python of an ssh server and client. Based on https://datatracker.ietf.org/doc/html/rfc4253

@@ -31,10 +31,10 @@ class SshClient:
         # https://crypto.stackexchange.com/questions/59750/ssh-sequence-number-validity
         # todo: check if > int32 then 0
         self.sequence_number += 1
-        self.protocol.send_message(self.socket, bytes(msg), self.sequence_number)
+        self.protocol.send_message(self.socket, bytes(msg), self.sequence_number, self.shared_secret)
 
     def receive(self):
-        msg = self.protocol.receive_message(self.socket)
+        msg, mac = self.protocol.receive_message(self.socket, self.shared_secret)
         self.sequence_number += 1
         return msg
 

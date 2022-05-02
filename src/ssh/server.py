@@ -11,6 +11,11 @@ from ssh.protocol import SshTLPProtocol
 
 logging.basicConfig(level=logging.INFO)
 
+# Todo:
+# - Implement MAC and validation thereof
+# - Implement msg encryption
+# - Implement some basic functionality; ls -lah?
+
 
 @dataclass
 class Client:
@@ -58,10 +63,10 @@ class SshServer:
 
         with client_connection:
             while True:
-                msg_bytes = self.protocol.receive_message(client_connection)
+                msg_bytes, mac = self.protocol.receive_message(client_connection, self.clients[client_id].shared_secret)
                 logging.info(f"Message received")
                 self.clients[client_id].sequence_number += 1
-                reply = self.handle_msg(self.clients[client_id], msg_bytes)
+                reply = self.handle_msg(client_id, msg_bytes)
                 self.send(client_id, reply)
 
     def send(self, client_id, message):
@@ -70,10 +75,11 @@ class SshServer:
         self.protocol.send_message(
             socket=client.socket_connection,
             payload=bytes(message),
-            sequence_number=client.sequence_number
+            sequence_number=client.sequence_number,
+            shared_key=self.clients[client_id].shared_secret
         )
 
-    def handle_msg(self, client, msg: bytes):
+    def handle_msg(self, client_id, msg: bytes):
         logging.info(f"Handling msg for client {client}")
 
         msg_code = int.from_bytes(msg[0:1], 'little')
@@ -86,15 +92,13 @@ class SshServer:
             msg = StartKeyExchangeDH.from_bytes(msg)
             client_shared_secret = msg.e
             server_partial_secret = self.key_exchange_protocol.generate_partial_shared_key()
-            client.shared_secret = self.key_exchange_protocol.calculate_shared_key(client_shared_secret)
+            self.clients[client_id].shared_secret = self.key_exchange_protocol.calculate_shared_key(client_shared_secret)
             reply = KeyExchangeDHReply(
                 f=server_partial_secret,
                 server_host_key_certificates="https://some-verification-url",
                 signature_h="SOME SIGNATURE"
             )
         # else:
-
-            # self.inbox.put((client_id, msg_bytes)) or
             # reply = ...# Not ok todo
 
         return reply
